@@ -48,7 +48,7 @@ covid <-
 
 ### Gráfico de barras apiladas que muestre el caudal de los ríos Pandora y Bananito por cada uno de los 12 meses del año.
 
-```{r g1}
+```{r d1}
   grafico_rios <-
   rios %>%
   rename(fecha = Tiempo,
@@ -59,7 +59,7 @@ covid <-
   summarise(p_mes= sum(pandora), b_mes= sum(banano))
 
 ```
-```{r}
+```{r g1}
 ggplot(
   grafico_rios, 
   aes(x = mes, y = ( b_mes))
@@ -70,22 +70,21 @@ ggplot(
   xlab("Mes del año") +
   ylab("Suma de Caudal ") +
   theme_ipsum( plot_title_size = 15,
-  plot_title_face = "bold")
-
-
+  plot_title_face = "bold") +
+  coord_flip()
 
 ```
 
 
 
-###  Histograma que muestre la distribución de los casos nuevos de covid en Costa Ric
+###  Histograma que muestre la distribución de los casos nuevos de covid en Costa Rica
 
 
 
 
 
-```{r}
-covid_g <-
+```{r d2}
+covid_g2 <-
   covid %>%
   select(FECHA, nue_posi) %>%
   rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
@@ -93,13 +92,92 @@ covid_g <-
  
 
 ```
+```{r g2}
+ggplot(covid_g2, aes(x= fecha, y = positivos_nuevos)) +
+  geom_histogram(stat='identity', color= "gainsboro") +
+  ggtitle("Distribución de los casos nuevos de covid en Costa Rica") +
+  xlab("Fecha") +
+  ylab("Cantidad de casos") +
+  theme_ipsum( plot_title_size = 16,
+  plot_title_face = "bold") 
+```
+
+###  Gráfico de barras agrupadas que muestre la cantidad de hombres y mujeres fallecidos por covid en Costa Rica por cada uno de los 12 meses del año. 
+
+```{r d3}
+covid_g3 <-
+  covid %>%
+  select(FECHA, hom_fall, muj_fall) %>%
+  rename(fecha = FECHA, h_fallecidos = hom_fall, m_fallecidos = muj_fall) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
+  group_by(mes = format(fecha,"%m")) %>%
+  summarise(sum_h= sum(h_fallecidos), sum_m= sum(m_fallecidos))
+  
+
+```
+
+
+```{r g3}
+ggplot(
+  covid_g3, 
+  aes(x = mes, y= sum_m)
+) +
+  geom_col(position = "dodge") +
+  coord_flip()  +
+  ggtitle("Cantidad de hombres y mujeres fallecidos por covid en Costa Rica, por mes.") +
+  xlab("Mes del año") +
+  ylab("Fallecidos") +
+  theme_ipsum( plot_title_size = 12,
+  plot_title_face = "bold") 
+```
+
 ```{r}
-ggplot(covid_g, aes(x= positivos_nuevos)) +
-  geom_histogram()
+covid_h <-
+  covid %>%
+  select(FECHA, hom_fall) %>%
+  rename(fecha = FECHA, h_fallecidos = hom_fall) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
+  group_by(mes = format(fecha,"%m")) %>%
+  summarise(sum_h= sum(h_fallecidos))
+
+covid_m <-
+  covid %>%
+  select(FECHA, muj_fall) %>%
+  rename(fecha = FECHA, m_fallecidos = muj_fall) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
+  group_by(mes = format(fecha,"%m")) %>%
+  summarise(sum_m= sum(m_fallecidos))
+
+
+
+```
+
+
+```{r}
+
+  
+ggplot() +
+  geom_col(data= covid_h, aes( x=mes, y= sum_h), color= "blue", width = 0.45,
+           position = position_nudge(x = -0.225)) +
+  geom_col(data= covid_m, aes( x=mes, y= sum_m), color= "lightpink",width = 0.45,
+           position = position_nudge(x = 0.225))
+
 ```
 
 
 
+```{r}
+ggplot() + geom_col( data= grafico_rios, aes(x = mes, y = ( b_mes)), color= "blue", width = 0.45,
+           position = position_nudge(x = -0.225)) + 
+  geom_col( data= grafico_rios, aes(x = mes, y = ( p_mes)), color= "green", width = 0.45,
+           position = position_nudge(x = 0.225)) +
+  ggtitle("Suma del caudal de los ríos Pandora y Bananito, por mes.") +
+  xlab("Mes del año") +
+  ylab("Suma de Caudal ") +
+  theme_ipsum( plot_title_size = 15,
+  plot_title_face = "bold") 
+
+```
 
 
 
