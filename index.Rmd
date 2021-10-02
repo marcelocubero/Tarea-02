@@ -1,0 +1,116 @@
+---
+title: "Tarea 02 - Graficación y Tidyverse"
+author: "Marcelo Cubero Sibaja"
+date: "1/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Graficación y Tidyverse
+
+```{r carga-paquetes, include=FALSE}
+# dplyr
+library(dplyr) 
+# Carga de graphics
+library(graphics)
+
+# Carga de ggplot2
+library(ggplot2)
+
+# Carga de hrbrthemes
+library(hrbrthemes)
+
+# Carga de plotly
+library(plotly)
+
+# Carga de dplyr
+library(dplyr)
+
+```
+### Datos
+```{r carga-datos}
+# Carga de datos desde un archivo CSV
+rios <-
+  read.csv(file = 'https://raw.githubusercontent.com/tpb728O-programaciongeoespacialr/2021ii/main/datos/hidrologia/fdc/fdc.csv')
+           
+# Carga de datos desde un archivo CSV
+covid <- 
+  read.csv(
+    file='https://raw.githubusercontent.com/tpb728O-programaciongeoespacialr/2021ii/main/datos/minsalud/covid/ultimafecha_CSV_GENERAL.csv', 
+    sep = ","
+  )           
+
+```
+
+### Gráfico de barras apiladas que muestre el caudal de los ríos Pandora y Bananito por cada uno de los 12 meses del año.
+
+```{r g1}
+  grafico_rios <-
+  rios %>%
+  rename(fecha = Tiempo,
+         pandora = Pandora.mm..637km2.,
+         banano = Banano.mm..90km2.) %>%
+  mutate(fecha = as.Date(fecha, format = "%m/%d/%Y")) %>%
+  group_by(mes = format(fecha,"%m")) %>%
+  summarise(p_mes= sum(pandora), b_mes= sum(banano))
+
+```
+```{r}
+ggplot(
+  grafico_rios, 
+  aes(x = mes, y = ( b_mes))
+) +  
+  geom_col(position = "dodge") +
+  coord_flip()  +
+  ggtitle("Suma del caudal de los ríos Pandora y Bananito, por mes.") +
+  xlab("Mes del año") +
+  ylab("Suma de Caudal ") +
+  theme_ipsum( plot_title_size = 15,
+  plot_title_face = "bold")
+
+
+
+```
+
+
+
+###  Histograma que muestre la distribución de los casos nuevos de covid en Costa Ric
+
+
+
+
+
+```{r}
+covid_g <-
+  covid %>%
+  select(FECHA, nue_posi) %>%
+  rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y"))
+ 
+
+```
+```{r}
+ggplot(covid_g, aes(x= positivos_nuevos)) +
+  geom_histogram()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
