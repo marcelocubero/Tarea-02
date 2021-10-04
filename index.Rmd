@@ -104,12 +104,11 @@ covid_g2 <-
 ```
 ```{r g2}
 ggplot(covid_g2, aes(x= fecha, y = positivos_nuevos)) +
-  geom_histogram(stat='identity', color= "gainsboro") +
+  geom_histogram(stat='identity', color= "lightsalmon") +
   ggtitle("Distribución de los casos nuevos de covid en Costa Rica") +
   xlab("Fecha") +
   ylab("Cantidad de casos") +
-  theme_ipsum( plot_title_size = 16,
-  plot_title_face = "bold") 
+  theme() 
 ```
 
 ###  Gráfico de barras agrupadas que muestre la cantidad de hombres y mujeres fallecidos por covid en Costa Rica por cada uno de los 12 meses del año. 
