@@ -1,7 +1,7 @@
 ---
 title: "Tarea 02 - Graficación y Tidyverse"
 author: "Marcelo Cubero Sibaja"
-date: "1/10/2021"
+
 output: html_document
 ---
 
@@ -30,58 +30,55 @@ library(plotly)
 # Carga de dplyr
 library(dplyr)
 
+# Carga Tidyverse
+library(tidyverse)
+
 ```
 ### Datos
 ```{r carga-datos}
 # Carga de datos desde un archivo CSV
 rios <-
   read.csv(file = 'https://raw.githubusercontent.com/tpb728O-programaciongeoespacialr/2021ii/main/datos/hidrologia/fdc/fdc.csv')
-           
+
 # Carga de datos desde un archivo CSV
-covid <- 
-  read.csv(
-    file='https://raw.githubusercontent.com/tpb728O-programaciongeoespacialr/2021ii/main/datos/minsalud/covid/ultimafecha_CSV_GENERAL.csv', 
-    sep = ","
-  )           
+covid <-
+  read.csv(file = 'https://raw.githubusercontent.com/tpb728O-programaciongeoespacialr/2021ii/main/datos/minsalud/covid/ultimafecha_CSV_GENERAL.csv',
+           sep = ",")           
 
 ```
 
 ### Gráfico de barras apiladas que muestre el caudal de los ríos Pandora y Bananito por cada uno de los 12 meses del año.
 
 ```{r d1}
-  grafico_rios <-
+grafico_rios <-
   rios %>%
   rename(fecha = Tiempo,
-         pandora = Pandora.mm..637km2.,
-         banano = Banano.mm..90km2.) %>%
+         Pandora = Pandora.mm..637km2.,
+         Banano = Banano.mm..90km2.) %>%
+  pivot_longer(
+    cols = c(`Banano`, `Pandora`),
+    names_to = "rio",
+    values_to   = "caudal"
+  ) %>%
   mutate(fecha = as.Date(fecha, format = "%m/%d/%Y")) %>%
-  group_by(mes = format(fecha,"%m")) %>%
-  summarise(p_mes= sum(pandora), b_mes= sum(banano))
+  group_by(rio, mes = format(fecha, "%m")) %>%
+  summarise(caudal = sum(caudal))
 
 ```
 
 
-```{r}
-ggplot() + geom_col(
-  data = grafico_rios,
-  aes(x = mes, y = b_mes, fill = "Río Bananito"),
-  width = 0.7,
-  position = "stack"
-) +
-  geom_col(
-    data = grafico_rios,
-    aes(x = mes, y =  p_mes, fill = "Río Pandora"),
-    width = 0.45,
-    position = "stack"
-  )  +
+```{r g1}
+ggplot(grafico_rios, aes(x = mes, y = caudal, fill = rio)) + geom_col()  +
   ggtitle("Suma del caudal de los ríos Pandora y Bananito, por mes.") +
   xlab("Mes del año") +
   ylab("Suma de Caudal ") +
+  scale_fill_manual(values = c("lightsteelblue", "greenyellow")) +
   theme(
     legend.box      = "horizontal",
     legend.key      = element_blank(),
     legend.title    = element_blank(),
-    legend.position = "top"
+    legend.position = "top",
+    plot.title = element_text(size = 17, face = "bold")
   )
 
 ```
@@ -99,16 +96,17 @@ covid_g2 <-
   select(FECHA, nue_posi) %>%
   rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
   mutate(fecha = as.Date(fecha, format = "%d/%m/%Y"))
- 
 
 ```
+
 ```{r g2}
-ggplot(covid_g2, aes(x= fecha, y = positivos_nuevos)) +
-  geom_histogram(stat='identity', color= "lightsalmon") +
+
+ggplot(covid_g2, aes(x = fecha, y = positivos_nuevos)) +
+  geom_histogram(stat = 'identity', color = "seagreen") +
   ggtitle("Distribución de los casos nuevos de covid en Costa Rica") +
   xlab("Fecha") +
   ylab("Cantidad de casos") +
-  theme() 
+  theme(plot.title = element_text(size = 16, face = "bold"))
 ```
 
 ###  Gráfico de barras agrupadas que muestre la cantidad de hombres y mujeres fallecidos por covid en Costa Rica por cada uno de los 12 meses del año. 
@@ -117,54 +115,47 @@ ggplot(covid_g2, aes(x= fecha, y = positivos_nuevos)) +
 covid_g3 <-
   covid %>%
   select(FECHA, hom_fall, muj_fall) %>%
-  rename(fecha = FECHA, h_fallecidos = hom_fall, m_fallecidos = muj_fall) %>%
+  rename(fecha = FECHA,
+         h_fallecidos = hom_fall,
+         m_fallecidos = muj_fall) %>%
   mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
-  group_by(mes = format(fecha,"%m")) %>%
-  summarise(sum_h= sum(h_fallecidos), sum_m= sum(m_fallecidos))
-  
+  group_by(mes = format(fecha, "%m")) %>%
+  summarise(sum_h = sum(h_fallecidos),
+            sum_m = sum(m_fallecidos))
+
 
 ```
 
 
 
-```{r}
-covid_h <-
-  covid %>%
-  select(FECHA, hom_fall) %>%
-  rename(fecha = FECHA, h_fallecidos = hom_fall) %>%
-  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
-  group_by(mes = format(fecha,"%m")) %>%
-  summarise(sum_h= sum(h_fallecidos))
-
-covid_m <-
-  covid %>%
-  select(FECHA, muj_fall) %>%
-  rename(fecha = FECHA, m_fallecidos = muj_fall) %>%
-  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
-  group_by(mes = format(fecha,"%m")) %>%
-  summarise(sum_m= sum(m_fallecidos))
 
 
-
-```
-
-```{r}
-
-  
+```{r g3}
 ggplot() +
-  geom_col(data= covid_h, aes( x=mes, y= sum_h, fill= "Hombres"), width = 0.45,
-           position = position_nudge(x = -0.225)) +
-  geom_col(data= covid_m, aes( x=mes, y= sum_m, fill="Mujeres"), width = 0.45,
-           position = position_nudge(x = 0.225)) + theme(legend.box      = "horizontal",
-    legend.key      = element_blank(),
-    legend.title    = element_blank(),
-    legend.position = "right")  +
+  geom_col(
+    data = covid_g3,
+    aes(x = mes , y = sum_h, fill = "Hombres"),
+    width = 0.45,
+    position = position_nudge(x = -0.225)
+  ) +
+  geom_col(
+    data = covid_g3,
+    aes(x = mes, y = sum_m, fill = "Mujeres"),
+    width = 0.45,
+    position = position_nudge(x = 0.225)
+  ) +
+  scale_fill_manual(values = c("navy", "hotpink")) +
   ggtitle("Suma de fallecidos por Covid-19, de hombres y mujeres, por mes.") +
   xlab("Mes del año") +
-  ylab("Suma de fallecidos ")
-
+  ylab("Suma de fallecidos ") +
+  theme(
+    legend.box      = "horizontal",
+    legend.key      = element_blank(),
+    legend.title    = element_blank(),
+    legend.position = "top",
+    plot.title = element_text(size = 14, face = "bold")
+  )
 ```
-
 
 
 
